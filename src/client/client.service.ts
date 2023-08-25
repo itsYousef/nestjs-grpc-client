@@ -2,16 +2,17 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { ClientGrpc } from '@nestjs/microservices';
-import { PersonsService } from './interfaces/person-service.interface';
+import { HelloRequest, PERSONS_SERVICE_NAME, PERSON_PACKAGE_NAME, PersonsServiceClient } from './interfaces/person';
+import { ReplaySubject } from 'rxjs';
 
 
 @Injectable()
 export class ClientService implements OnModuleInit {
-  constructor(@Inject('PERSON_PACKAGE') private client: ClientGrpc) { }
-  private personsService: PersonsService;
+  constructor(@Inject(PERSON_PACKAGE_NAME) private client: ClientGrpc) { }
+  private personsService: PersonsServiceClient;
 
   onModuleInit() {
-    this.personsService = this.client.getService<PersonsService>('PersonsService');
+    this.personsService = this.client.getService<PersonsServiceClient>(PERSONS_SERVICE_NAME);
   }
 
   create(createClientDto: CreateClientDto) {
@@ -19,15 +20,17 @@ export class ClientService implements OnModuleInit {
   }
 
   findAll() {
-    return `This action returns all client`;
+    const helloRequest$ = new ReplaySubject<HelloRequest>();
+
+    helloRequest$.next({ greeting: 'Hello (1)!' });
+    helloRequest$.next({ greeting: 'Hello (2)!' });
+    helloRequest$.complete();
+
+    return this.personsService.bidiHello(helloRequest$);
   }
 
   findOne(id: number) {
     let data = this.personsService.findOne({ id });
-    data.subscribe((da) => {
-      console.debug(`\n🚀 => da:`, da);
-      
-    });
     return data;
   }
 

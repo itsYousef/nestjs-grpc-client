@@ -3,6 +3,7 @@ import { ClientService } from './client.service';
 import { ClientController } from './client.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
+import { PERSON_PACKAGE_NAME } from './interfaces/person';
 
 @Module({
   controllers: [ClientController],
@@ -10,10 +11,10 @@ import { join } from 'path';
   imports: [
     ClientsModule.register([
       {
-        name: 'PERSON_PACKAGE',
+        name: PERSON_PACKAGE_NAME,
         transport: Transport.GRPC,
         options: {
-          package: 'person',
+          package: PERSON_PACKAGE_NAME,
           protoPath: join(__dirname, 'person.proto'),
           url: "localhost:5001"
         },
